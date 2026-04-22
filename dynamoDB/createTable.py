@@ -20,6 +20,7 @@ def createTable():
 
     tableName = "song2026_A2"
 
+    # DEFINE PARTITION KEY AND SORT KEY
     keySchema = [
         {
             'AttributeName': 'title',
@@ -30,6 +31,8 @@ def createTable():
             'KeyType': 'RANGE'
         }
     ]
+
+    # DEFINE ATTRIBUTE TYPE
 
     AttributeDefinitions=[
         {
@@ -42,14 +45,29 @@ def createTable():
         }
     ]
 
+    # IOPT
     ProvisionedThroughput= {
         'ReadCapacityUnits': 5,
         'WriteCapacityUnits': 5
     }
 
+    # SECONDARY INDEX 
+    
+    GSI=[
+        {
+            'IndexName': 'year-index',
+            'KeySchema': [
+                {'AttributeName': 'year', 'KeyType': 'HASH'}
+            ],
+            'Projection': {'ProjectionType': 'ALL'},
+            'ProvisionedThroughput': {'ReadCapacityUnits': 5, 'WriteCapacityUnits': 5}
+        }
+    ]
+
+
     # Create table ---------------------------------------------------------------------------------------------------------------------------------------------------
     
-    dndb.create_new_table(tableName=tableName, KeySchema=keySchema, AttributeDefinitions=AttributeDefinitions, ProvisionedThroughput=ProvisionedThroughput)
+    dndb.create_new_table(tableName=tableName, KeySchema=keySchema, AttributeDefinitions=AttributeDefinitions, ProvisionedThroughput=ProvisionedThroughput, GlobalSecondaryIndexes=GSI)
 
     # -----------------------------------------------------------------------------------------------------------------------------------------------------------------
 

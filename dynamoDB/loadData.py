@@ -1,3 +1,4 @@
+import sys
 from pathlib import Path
 
 project_root = Path(__file__).parent.parent
@@ -14,21 +15,31 @@ def loadData():
     data = load(songsJson)
     songs = data["songs"]
 
+    # Initialize DynamoDB -------------------------------------------------------------------------------
+
+    dndb = DynamoDB()
+
+    dndb.get_table("song2026_A2")
+
+    if dndb.workingTable is None:
+        print("Could not load table, aborting.")
+        sys.exit(-1)
+
+
     # ----------------------------------------------------------------------------------------------------
     # Loading data (TODO)
     # -----------------------------------------------------------------------------------------------------
 
-    for i, songs in enumerate(songs):
+    for i, song in enumerate(songs):
 
         if (i + 1) % 25 == 0:
             print(f"Loading song {i+1} / {len(songs)}")
-        
-        pass
+
+        if (i == len(songs) - 1):
+            print(f"Loading song {i+1} / {len(songs)}")
 
 
-
-
-
+        dndb.put_item(song)
 
 if __name__ == "__main__":
     loadData()

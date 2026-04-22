@@ -16,22 +16,32 @@ class DynamoDB:
 
     # ---------------------------------------------------------------------------------------------------------------------------------
 
-    def create_new_table(self, tableName:str, KeySchema: Any, AttributeDefinitions: Any, ProvisionedThroughput: Any):
+    def create_new_table(self, tableName:str, KeySchema: Any, AttributeDefinitions: Any, ProvisionedThroughput: Any, GlobalSecondaryIndexes=None):
 
         """
         Make a dynamoDB table.
 
         @params tableName: Name for new table.
-        @params KeySchema: Key Schema for name and attribute types, list of dicts \ne.g. [ {   'AttributeName':'username'    ,   'KeyType':'HASH'     }   ,  {...}    ]
-        @para
+        @params KeySchema: Key Schema for name and attribute types, list of dicts \n\te.g. [{'AttributeName':'title','KeyType':'HASH'}   ,  {...}]
+        @params AttributeDefinitions: List of Dicts defining key types \n\t e.g. [{'AttributeName': 'title', 'AttributeType': 'S', {...}]
+        @params ProvisionedThroughput: Dict defining Input/Output ProvisioningThroughput (IOPT) \n\t e.g. {'ReadCapacityUnits': 5, 'WriteCapacityUnits': 5}
+        @params GlobalSecondaryIndexes: (optional**) List of Dict defining Global Secondary Index \n\t e.g. [{'IndexName': 'year-index', 'KeySchema': [...], 'Projection': {...}, 'ProvisionedThroughput': {...}}]
         """
 
         # make dynamoDB table
         try:
-            table = self.dynamodb.create_table(TableName=tableName, 
-                                            KeySchema=KeySchema, 
-                                            AttributeDefinitions=AttributeDefinitions, 
-                                            ProvisionedThroughput=ProvisionedThroughput)
+
+            params = {
+                'TableName': tableName,
+                'KeySchema': KeySchema,
+                'AttributeDefinitions': AttributeDefinitions,
+                'ProvisionedThroughput': ProvisionedThroughput
+            }
+
+            if GlobalSecondaryIndexes is not None:
+                params['GlobalSecondaryIndexes'] = GlobalSecondaryIndexes
+
+            table = self.dynamodb.create_table(**params)
             table.wait_until_exists()
             print(table.item_count)
             
@@ -58,6 +68,7 @@ class DynamoDB:
 
         except Exception as e:
             print(f"Failed to fetch table: {e}")
+            self.workingTable = None
 
     # ---------------------------------------------------------------------------------------------------------------------------------
 
@@ -133,7 +144,9 @@ class DynamoDB:
         """
         Update item given key in dict form, attribute to update, new value.
 
-        @params  
+        @params key: Dict with partition and sort key \n\t e.g. {'title': '1904', 'artist': 'The Tallest Man on Earth'}
+        @params attributeToUpdate: Name of attribute to update \n\t e.g. 'year'
+        @params newVal: New value to update \n\t e.g. '2021'
         """
 
         self.has_table()
@@ -156,8 +169,8 @@ class DynamoDB:
         """
         Query for string given query and key to query
 
-        @param keyString: key of attr to query
-        @param query: query to parse
+        @param keyString: key of attr to query \n\t e.g. 'title'
+        @param query: query to parse \n\t e.g. '1904'
         """
 
         response = self.workingTable.query(
