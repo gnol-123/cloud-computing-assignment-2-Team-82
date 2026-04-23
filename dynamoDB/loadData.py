@@ -38,7 +38,6 @@ def loadData():
         if (i == len(songs) - 1):
             print(f"Loading song {i+1} / {len(songs)}")
 
-
         dndb.put_item(song)
 
 if __name__ == "__main__":

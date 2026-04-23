@@ -26,7 +26,7 @@ class DynamoDB:
         @params AttributeDefinitions: List of Dicts defining key types \n\t e.g. [{'AttributeName': 'title', 'AttributeType': 'S', {...}]
         @params ProvisionedThroughput: Dict defining Input/Output ProvisioningThroughput (IOPT) \n\t e.g. {'ReadCapacityUnits': 5, 'WriteCapacityUnits': 5}
         @params GlobalSecondaryIndexes: (optional**) List of Dict defining Global Secondary Index \n\t e.g. [{'IndexName': 'year-index', 'KeySchema': [...], 'Projection': {...}, 'ProvisionedThroughput': {...}}]
-        @params LocalSecondaryIndexes
+        @params LocalSecondaryIndexes: (optional**) List of Dict defining Local Secondary Index
         """
 
         # make dynamoDB table
@@ -109,7 +109,8 @@ class DynamoDB:
         """
         Get item from table
 
-        @params key: key in dict form \ne.g. Key={ 'username': 'janedoe' , 'last_name': 'Doe' }
+        @params key: key in dict form \ne.g. Key={ 'username':'janedoe' , 'last_name':'Doe' }
+
         """
 
         self.has_table()
@@ -176,7 +177,7 @@ class DynamoDB:
         @params keyString: key of attr to query \n\t e.g. 'title'
         @params query: query to parse \n\t e.g. '1904'
         @params indexName: (optional**) name of index to query
-        @params sortKeyString: (optional**) sort key attribute name \n\t e.g. 'album'
+        @params sortKeyString: (optional**) sort key attribute name e.g. 'album'
         @params sortKeyQueury: (optional**) sort key attribute value to query e.g. 'randomAlbum'
         """
 
@@ -199,7 +200,29 @@ class DynamoDB:
         except Exception as e:
             print(f"Failed to query: {e}")
 
+    # ---------------------------------------------------------------------------------------------------------------------------------
 
+    def scan(self, filterAttribute: str = None, filterValue: str = None):
+        """
+        Scan through and find entry given filterValue in filterAttribute
+
+        @params filterAttribute: attribute to scan e.g. "title"
+        @params filterValue: value to search for .e.g. "1904"
+        """
+
+        try:
+            if filterAttribute and filterValue:
+                response = self.workingTable.scan(
+                    FilterExpression=Attr(filterAttribute).eq(filterValue)
+                )
+            else:
+                response = self.workingTable.scan()
+            return response.get('Items')
+
+        except Exception as e:
+            print(f"Failed to scan table: {e}")
+
+    # ---------------------------------------------------------------------------------------------------------------------------------
 
     def delete_table(self, tableName:str):
 

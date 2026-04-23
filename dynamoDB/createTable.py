@@ -12,7 +12,7 @@ def createTable():
 
     dndb = DynamoDB()
 
-    print("Making table")
+    print("Making table...")
 
     # ---------------------------------------------------------------------------------
     # THIS IS SAMPLE SCHEMA FOR NOW WE STILL HAVE TO DECIDE HOW WE WANT TO DESIGN IT.
@@ -20,7 +20,8 @@ def createTable():
 
     tableName = "song2026_A2"
 
-    # DEFINE PARTITION KEY AND SORT KEY
+    # DEFINE PARTITION KEY AND SORT KEY ------------------------------------------------------------------------------------------------------
+
     keySchema = [
         {
             'AttributeName': 'artist',
@@ -32,32 +33,37 @@ def createTable():
         }
     ]
 
-    # DEFINE ATTRIBUTE TYPE
+    # DEFINE ATTRIBUTE TYPE ------------------------------------------------------------------------------------------------------------------
 
     AttributeDefinitions=[
-        {
-            'AttributeName': 'title',
-            'AttributeType': 'S'
-        },
-        {
-            'AttributeName': 'artist',
-            'AttributeType': 'S'
-        }
+        {'AttributeName': 'title', 'AttributeType': 'S'},
+        {'AttributeName': 'artist', 'AttributeType': 'S'},
+        {'AttributeName': 'year', 'AttributeType': 'S'},
+        {'AttributeName': 'album', 'AttributeType': 'S'}
     ]
 
-    # IOPT
+    # IOPT ------------------------------------------------------------------------------------------------------------------------------------
+
     ProvisionedThroughput= {
         'ReadCapacityUnits': 5,
         'WriteCapacityUnits': 5
     }
 
-    # SECONDARY INDEX 
-    
+    # SECONDARY INDEXEX -----------------------------------------------------------------------------------------------------------------------
+
     GSI=[
         {
-            'IndexName': 'year-index',
+            'IndexName': 'year-gsi',
             'KeySchema': [
                 {'AttributeName': 'year', 'KeyType': 'HASH'}
+            ],
+            'Projection': {'ProjectionType': 'ALL'},
+            'ProvisionedThroughput': {'ReadCapacityUnits': 5, 'WriteCapacityUnits': 5}
+        },
+        {
+            'IndexName': 'album-gsi',
+            'KeySchema': [
+                {'AttributeName': 'album', 'KeyType': 'HASH'}
             ],
             'Projection': {'ProjectionType': 'ALL'},
             'ProvisionedThroughput': {'ReadCapacityUnits': 5, 'WriteCapacityUnits': 5}
@@ -66,10 +72,18 @@ def createTable():
 
     LSI=[
         {
-            'IndexName': 'album-index',
+            'IndexName': 'album-lsi',
             'KeySchema': [
                 {'AttributeName': 'artist', 'KeyType': 'HASH'},  
                 {'AttributeName': 'album', 'KeyType': 'RANGE'} 
+            ],
+            'Projection': {'ProjectionType': 'ALL'}
+        },
+        {
+            'IndexName': 'year-lsi',
+            'KeySchema': [
+                {'AttributeName': 'artist', 'KeyType': 'HASH'},  
+                {'AttributeName': 'year', 'KeyType': 'RANGE'} 
             ],
             'Projection': {'ProjectionType': 'ALL'}
         }
