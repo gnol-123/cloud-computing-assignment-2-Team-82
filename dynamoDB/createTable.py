@@ -23,11 +23,11 @@ def createTable():
     # DEFINE PARTITION KEY AND SORT KEY
     keySchema = [
         {
-            'AttributeName': 'title',
+            'AttributeName': 'artist',
             'KeyType': 'HASH'
         },
         {
-            'AttributeName': 'artist',
+            'AttributeName': 'title',
             'KeyType': 'RANGE'
         }
     ]
@@ -64,10 +64,21 @@ def createTable():
         }
     ]
 
+    LSI=[
+        {
+            'IndexName': 'album-index',
+            'KeySchema': [
+                {'AttributeName': 'artist', 'KeyType': 'HASH'},  
+                {'AttributeName': 'album', 'KeyType': 'RANGE'} 
+            ],
+            'Projection': {'ProjectionType': 'ALL'}
+        }
+    ]
+
 
     # Create table ---------------------------------------------------------------------------------------------------------------------------------------------------
     
-    dndb.create_new_table(tableName=tableName, KeySchema=keySchema, AttributeDefinitions=AttributeDefinitions, ProvisionedThroughput=ProvisionedThroughput, GlobalSecondaryIndexes=GSI)
+    dndb.create_new_table(tableName=tableName, KeySchema=keySchema, AttributeDefinitions=AttributeDefinitions, ProvisionedThroughput=ProvisionedThroughput, GlobalSecondaryIndexes=GSI, LocalSecondaryIndexes=LSI)
 
     # -----------------------------------------------------------------------------------------------------------------------------------------------------------------
 

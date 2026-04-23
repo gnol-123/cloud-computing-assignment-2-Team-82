@@ -16,7 +16,7 @@ class DynamoDB:
 
     # ---------------------------------------------------------------------------------------------------------------------------------
 
-    def create_new_table(self, tableName:str, KeySchema: Any, AttributeDefinitions: Any, ProvisionedThroughput: Any, GlobalSecondaryIndexes=None):
+    def create_new_table(self, tableName:str, KeySchema: Any, AttributeDefinitions: Any, ProvisionedThroughput: Any, GlobalSecondaryIndexes=None, LocalSecondaryIndexes=None):
 
         """
         Make a dynamoDB table.
@@ -26,6 +26,7 @@ class DynamoDB:
         @params AttributeDefinitions: List of Dicts defining key types \n\t e.g. [{'AttributeName': 'title', 'AttributeType': 'S', {...}]
         @params ProvisionedThroughput: Dict defining Input/Output ProvisioningThroughput (IOPT) \n\t e.g. {'ReadCapacityUnits': 5, 'WriteCapacityUnits': 5}
         @params GlobalSecondaryIndexes: (optional**) List of Dict defining Global Secondary Index \n\t e.g. [{'IndexName': 'year-index', 'KeySchema': [...], 'Projection': {...}, 'ProvisionedThroughput': {...}}]
+        @params LocalSecondaryIndexes
         """
 
         # make dynamoDB table
@@ -40,6 +41,9 @@ class DynamoDB:
 
             if GlobalSecondaryIndexes is not None:
                 params['GlobalSecondaryIndexes'] = GlobalSecondaryIndexes
+
+            if LocalSecondaryIndexes is not None:
+                params['LocalSecondaryIndexes'] = LocalSecondaryIndexes
 
             table = self.dynamodb.create_table(**params)
             table.wait_until_exists()
@@ -164,20 +168,38 @@ class DynamoDB:
 
     # ---------------------------------------------------------------------------------------------------------------------------------
 
-    def query(self, keyString:str,query: str):
+    def query(self, keyString:str,query: str,  indexName: str = None, sortKeyString: str = None, sortKeyQuery: str = None):
 
         """
         Query for string given query and key to query
 
-        @param keyString: key of attr to query \n\t e.g. 'title'
-        @param query: query to parse \n\t e.g. '1904'
+        @params keyString: key of attr to query \n\t e.g. 'title'
+        @params query: query to parse \n\t e.g. '1904'
+        @params indexName: (optional**) name of index to query
+        @params sortKeyString: (optional**) sort key attribute name \n\t e.g. 'album'
+        @params sortKeyQueury: (optional**) sort key attribute value to query e.g. 'randomAlbum'
         """
 
-        response = self.workingTable.query(
-            KeyConditionExpression=Key(keyString).eq(query)
-        )
+        try:
+            keyCondition = Key(keyString).eq(query)
 
-        return response
+            if sortKeyString and sortKeyQuery:
+                keyCondition = keyCondition & Key(sortKeyString).eq(sortKeyQuery)
+
+            params = {
+                'KeyConditionExpression': keyCondition
+            }
+
+            if indexName:
+                params['IndexName'] = indexName
+
+            response = self.workingTable.query(**params)
+            return response.get('Items')
+
+        except Exception as e:
+            print(f"Failed to query: {e}")
+
+
 
     def delete_table(self, tableName:str):
 
