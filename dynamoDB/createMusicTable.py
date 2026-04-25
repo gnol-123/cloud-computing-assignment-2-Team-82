@@ -15,10 +15,10 @@ def createTable():
     print("Making table...")
 
     # ---------------------------------------------------------------------------------
-    # THIS IS SAMPLE SCHEMA FOR NOW WE STILL HAVE TO DECIDE HOW WE WANT TO DESIGN IT.
+    # Table attributes
     # ---------------------------------------------------------------------------------
 
-    tableName = "song2026_A2"
+    tableName = "music"
 
     # DEFINE PARTITION KEY AND SORT KEY ------------------------------------------------------------------------------------------------------
 
@@ -93,6 +93,7 @@ def createTable():
     # Create table ---------------------------------------------------------------------------------------------------------------------------------------------------
     
     dndb.create_new_table(tableName=tableName, KeySchema=keySchema, AttributeDefinitions=AttributeDefinitions, ProvisionedThroughput=ProvisionedThroughput, GlobalSecondaryIndexes=GSI, LocalSecondaryIndexes=LSI)
+    print(f"successfully made table!...")
 
     # -----------------------------------------------------------------------------------------------------------------------------------------------------------------
 
