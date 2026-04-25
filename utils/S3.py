@@ -69,8 +69,6 @@ class S3:
         """
         if not self.workingBucket:
             raise RuntimeError("No bucket loaded. Call get_bucket() first.")
-        else:
-            print(f"Current working bucket: {self.workingBucket}")
 
     # ---------------------------------------------------------------------------------------------------------------------------------
 
@@ -137,6 +135,8 @@ class S3:
         @params dir: Key prefix to print e.g. 'img/'
         """
 
+        self.has_bucket()
+
         try:
             response = self.s3.list_objects_v2(Bucket=self.workingBucket, Prefix=dir)
             items = response.get('Contents', [])
@@ -153,6 +153,9 @@ class S3:
 
         @params bucketName: name of bucket to delete
         """
+
+        self.has_bucket()
+
         try:
             self.get_bucket(bucketName)
             self.s3.delete_bucket(Bucket=bucketName)
@@ -163,4 +166,26 @@ class S3:
             print(f"Failed to delete bucket: {e}")
 
     # ---------------------------------------------------------------------------------------------------------------------------------
+
+    def upload_bytes(self, data: bytes, key: str, contentType: str = 'image/jpeg'):
+        """
+        Upload raw bytes to the working bucket.
+
+        @params data: raw bytes to upload
+        @params key: name of object to be stored in working bucket
+        @params contentType: file format (default image/jpeg)
+        """
+        self.has_bucket()
+
+        try:
+            self.s3.put_object(
+                Bucket=self.workingBucket,
+                Key=key,
+                Body=data,
+                ContentType=contentType
+            )
+            print(f"Successfully uploaded {key}")
+
+        except Exception as e:
+            print(f"Failed to upload bytes: {e}")
 
