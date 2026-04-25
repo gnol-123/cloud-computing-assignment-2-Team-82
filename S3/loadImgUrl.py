@@ -24,7 +24,7 @@ def main():
     print(f"Getting S3 Bucket...")
     client = S3()
 
-    # ***CHANGE TO THE BUCKET NAME YOU CREATED*** (TODO) #
+    # *** CHANGE TO THE BUCKET NAME YOU CREATED (TODO) *** #
     client.get_bucket("cloud-computing-a2-s4054917") 
 
     for i, song in enumerate(songs):
@@ -49,12 +49,6 @@ def main():
 
 
     print(f"Done uploaded {len(songs)} images!")
-
-
-        
-
-
-
 
 if __name__ == "__main__":
     main()

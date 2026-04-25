@@ -19,7 +19,7 @@ def main():
 
     print(f"Creating bucket...")
 
-    # ***MUST BE UNIQUE USE YOUR OWN STUDENT NUMBER*** (TODO) #
+    # *** MUST BE UNIQUE USE YOUR OWN STUDENT NUMBER (TODO) *** #
     bucket_name = "cloud-computing-a2-s4054917" 
 
     client.create_bucket(bucketName=bucket_name)
