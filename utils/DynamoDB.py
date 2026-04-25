@@ -100,7 +100,7 @@ class DynamoDB:
                 Item=item
             )
         except Exception as e:
-            print(f"Failed to delete item: {e}")
+            print(f"Failed to put item: {e}")
 
     # ---------------------------------------------------------------------------------------------------------------------------------
 
@@ -123,7 +123,7 @@ class DynamoDB:
             return response.get('Item')
         
         except Exception as e:
-            print(f"Failed to delete item: {e}")
+            print(f"Failed to get item: {e}")
 
     # ---------------------------------------------------------------------------------------------------------------------------------
   
