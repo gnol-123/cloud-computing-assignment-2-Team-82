@@ -258,7 +258,7 @@ def delete_subscription():
     
     subscriptions = user.get("subscriptions", [])
 
-    new_subscriptions = (subs for subs in subscriptions if not (subs["artist"] == artist and subs["title"] == title))
+    new_subscriptions = [subs for subs in subscriptions if not (subs["artist"] == artist and subs["title"] == title)]
 
     if len(new_subscriptions) == len(subscriptions):
         return jsonify({'message': f'failed to unsubscribe {title} not found'}), 404
