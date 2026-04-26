@@ -144,7 +144,7 @@ class DynamoDB:
 
     # ---------------------------------------------------------------------------------------------------------------------------------
 
-    def update_item(self, key:dict, attributeToUpdate: str, newVal: Any):
+    def update_item(self, key:dict, UpdateExpression: str, ExpressionAttributeValue: Any):
 
         """
         Update item given key in dict form, attribute to update, new value.
@@ -159,10 +159,8 @@ class DynamoDB:
         try:
             self.workingTable.update_item(
                 Key=key,
-                UpdateExpression=f'SET {attributeToUpdate} = :val1',
-                ExpressionAttributeValues={
-                    ':val1': newVal
-                }
+                UpdateExpression=UpdateExpression,
+                ExpressionAttributeValues=ExpressionAttributeValue
             )
         except Exception as e:
             print(f"Failed to update attribute: {e}")

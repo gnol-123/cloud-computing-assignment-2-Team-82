@@ -208,10 +208,18 @@ def get_image(artist):
 
 @app.route('/subscriptions', methods=['GET'])
 def get_subscriptions():
-    email = request.args.get('email')
+    email    = request.args.get('email')
+    username = request.args.get('user_name')
 
-    return jsonify({'message': 'incomplete'}), 200
+    result = loginDB.get_item(key={'email': email, 'user_name': username})
 
+    if not result:
+        return jsonify({'message': 'Invalid User'}), 404
+
+    subscriptions = result.get('subscriptions', [])
+    return jsonify(subscriptions), 200
+
+# ---------------------------------------------------------------------------------------------------------------------------------------------------
 
 @app.route('/subscriptions', methods=['POST'])
 def add_subscription():
@@ -219,17 +227,51 @@ def add_subscription():
     email  = data.get('email')
     artist = data.get('artist')
     title  = data.get('title')
+    user_name = data.get('user_name')
 
-    return jsonify({'message': 'incomplete'}), 201
+    try:
+        loginDB.workingTable.update_item(
+            Key={'email': email, 'user_name': user_name},
+            UpdateExpression='SET subscriptions = list_append(if_not_exists(subscriptions, :empty), :new)',
+            ExpressionAttributeValues={
+                ':new': [{'artist': artist, 'title': title}],
+                ':empty': []
+            }
+        )
+        return jsonify({'message': 'Subscribed!'}), 201
+    except Exception as e:
+        return jsonify({'message': f'Failed to subscribe: {e}'}), 500
 
-
+# -----------------------------------------------------------------------------------------------------------------------------------------------------
 @app.route('/subscriptions', methods=['DELETE'])
 def delete_subscription():
     data = request.json
     email  = data.get('email')
+    user_name = data.get('user_name')
     artist = data.get('artist')
+    title = data.get('title')
 
-    return jsonify({'message': 'incomplete'}), 200
+    user = loginDB.get_item(key={'email': email, 'user_name': user_name})
+
+    if not user:
+        return jsonify({'message': 'User not found'}), 404
+    
+    subscriptions = user.get("subscriptions", [])
+
+    new_subscriptions = (subs for subs in subscriptions if not (subs["artist"] == artist and subs["title"] == title))
+
+    if len(new_subscriptions) == len(subscriptions):
+        return jsonify({'message': f'failed to unsubscribe {title} not found'}), 404
+
+    try:
+        loginDB.workingTable.update_item(
+            Key={'email': email, 'user_name': user_name},
+            UpdateExpression='SET subscriptions = :updated',
+            ExpressionAttributeValues={':updated': new_subscriptions}
+        )
+        return jsonify({'message': 'Subscription removed'}), 200
+    except Exception as e:
+        return jsonify({'message': f'Failed to remove subscription: {e}'}), 500
 
 # main ---------------------------------------------------------------------------------------------------
 if __name__ == '__main__':
