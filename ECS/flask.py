@@ -1,7 +1,7 @@
-from flask import Flask, request, jsonify, session
+from flask import Flask, request, jsonify, session, send_file
 from flask_cors import CORS
 from pathlib import Path
-import sys
+import sys, base64
 
 app = Flask(__name__)
 app.secret_key = 'sample-key'
@@ -9,20 +9,29 @@ CORS(app, supports_credentials=True)
 
 project_root = Path(__file__).parent.parent
 sys.path.append(str(project_root))
+img_dir = project_root / "artifacts" / "images"
+Path(img_dir).mkdir(parents=True, exist_ok=True)
 
 from utils.DynamoDB import DynamoDB
 from utils.S3 import S3
 
 # Initialise DBs and S3 -----------------------------------------------------------------------------------
 
+# *** (TODO) SET TABLE AND BUCKET NAMES *** #
+
+MUSIC_TABLE = "music"
+LOGIN_TABLE = "login"
+S3_BUCKET = 'cloud-computing-a2-s4054917'
+
 songsDB = DynamoDB()
-songsDB.get_table("music")
+songsDB.get_table(MUSIC_TABLE)
+
 
 loginDB = DynamoDB()
-loginDB.get_table("login")
+loginDB.get_table(LOGIN_TABLE)
 
 s3 = S3()
-s3.get_bucket('cloud-computing-a2-s4054917')
+s3.get_bucket(S3_BUCKET)
 
 # AUTH -----------------------------------------------------------------------------------------------------
 
@@ -57,7 +66,7 @@ def logout():
     session.clear()
     return jsonify({'message': 'logged out'}), 200
 
-# Querying ------------------------------------------------------------------------------------------------
+# Querying -------------------------------------------------------------------------------------------------------------------------------------
 
 @app.route('/songs', methods=['GET'])
 def query_songs():
@@ -156,10 +165,15 @@ def query_songs():
 
     return jsonify(results), 200
 
+    # Get image --------------------------------------------------------------------------------------------------------------------------------
 
-
-
-
+@app.route('/image/<artist>', methods=['GET'])
+def get_image(artist):
+    key = f"img/{artist}"
+    fPath = img_dir / f"{artist}.jpg"
+    s3.download(key=key, filePath=fPath)
+    
+    return send_file(fPath, mimetype='image/jpeg')
 
 # main ---------------------------------------------------------------------------------------------------
 if __name__ == '__main__':

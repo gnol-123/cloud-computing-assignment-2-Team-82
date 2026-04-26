@@ -41,8 +41,8 @@ def main():
 
         # get image bytes
         img = requests.get(song['img_url']).content
-        # store as img/{title}
-        key = f"img/{song['title']}"
+        # store as img/{artist}
+        key = f"img/{song['artist']}"
 
         #upload
         client.upload_bytes(data=img, key=key)
