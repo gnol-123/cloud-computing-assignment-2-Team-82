@@ -33,7 +33,7 @@ loginDB.get_table(LOGIN_TABLE)
 s3 = S3()
 s3.get_bucket(S3_BUCKET)
 
-# AUTH -----------------------------------------------------------------------------------------------------
+# AUTH ====================================================================================================================
 
 @app.route('/login', methods=['POST'])
 def login():
@@ -61,12 +61,41 @@ def login():
     else:
         return jsonify({'message': 'Incorrect password'}), 200
 
+# -----------------------------------------------------------------------------------------------------------------------------
+
 @app.route('/logout', methods=['POST'])
 def logout():
     session.clear()
     return jsonify({'message': 'logged out'}), 200
 
-# Querying -------------------------------------------------------------------------------------------------------------------------------------
+# ------------------------------------------------------------------------------------------------------------------------------
+
+@app.route('/register', methods=['POST'])
+def register():
+    data = request.json
+    email    = data.get('email')
+    username = data.get('user_name')
+    password = data.get('password')
+
+    if not email or not username or not password:
+        return jsonify({'message': 'All fields are required'}), 400
+
+    existing = loginDB.query(keyString='email', query=email)
+
+    if existing:
+        return jsonify({'message': 'The email already exists'}), 409
+
+    newUser = {
+        'email': email,
+        'user_name': username,
+        'password': password
+    }
+
+    loginDB.put_item(newUser)
+
+    return jsonify({'message': 'Registration successful'}), 201
+
+# Querying =====================================================================================================================================
 
 @app.route('/songs', methods=['GET'])
 def query_songs():
@@ -165,7 +194,7 @@ def query_songs():
 
     return jsonify(results), 200
 
-    # Get image --------------------------------------------------------------------------------------------------------------------------------
+# Get image =======================================================================================================================================
 
 @app.route('/image/<artist>', methods=['GET'])
 def get_image(artist):
@@ -174,6 +203,33 @@ def get_image(artist):
     s3.download(key=key, filePath=fPath)
     
     return send_file(fPath, mimetype='image/jpeg')
+
+# Subscriptions ====================================================================================================================================
+
+@app.route('/subscriptions', methods=['GET'])
+def get_subscriptions():
+    email = request.args.get('email')
+
+    return jsonify({'message': 'incomplete'}), 200
+
+
+@app.route('/subscriptions', methods=['POST'])
+def add_subscription():
+    data = request.json
+    email  = data.get('email')
+    artist = data.get('artist')
+    title  = data.get('title')
+
+    return jsonify({'message': 'incomplete'}), 201
+
+
+@app.route('/subscriptions', methods=['DELETE'])
+def delete_subscription():
+    data = request.json
+    email  = data.get('email')
+    artist = data.get('artist')
+
+    return jsonify({'message': 'incomplete'}), 200
 
 # main ---------------------------------------------------------------------------------------------------
 if __name__ == '__main__':
