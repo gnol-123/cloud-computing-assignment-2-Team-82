@@ -40,7 +40,7 @@ def loadData():
 
         dndb.put_item(song)
 
-        print(f"Done! loaded {len(songs)} songs")
+    print(f"Done! loaded {len(songs)} songs")
 
 if __name__ == "__main__":
     loadData()

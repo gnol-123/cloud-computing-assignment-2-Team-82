@@ -67,6 +67,15 @@ def createTable():
             ],
             'Projection': {'ProjectionType': 'ALL'},
             'ProvisionedThroughput': {'ReadCapacityUnits': 5, 'WriteCapacityUnits': 5}
+        },
+        {
+            'IndexName': 'title-gsi',
+            'KeySchema': [
+                {'AttributeName': 'title', 'KeyType': 'HASH'},
+                {'AttributeName': 'artist', 'KeyType': 'RANGE'}
+            ],
+            'Projection': {'ProjectionType': 'ALL'},
+            'ProvisionedThroughput': {'ReadCapacityUnits': 5, 'WriteCapacityUnits': 5}
         }
     ]
 

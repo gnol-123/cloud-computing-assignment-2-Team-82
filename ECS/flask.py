@@ -52,7 +52,119 @@ def login():
     else:
         return jsonify({'message': 'Incorrect password'}), 200
 
+@app.route('/logout', methods=['POST'])
+def logout():
+    session.clear()
+    return jsonify({'message': 'logged out'}), 200
 
+# Querying ------------------------------------------------------------------------------------------------
+
+@app.route('/songs', methods=['GET'])
+def query_songs():
+    artist = request.args.get('artist')
+    title  = request.args.get('title')
+    year   = request.args.get('year')
+    album  = request.args.get('album')
+
+    result = {}
+
+    # artist only in main index ----------------------------------------------------------------------------------------------------------------
+
+    if artist and not year and not album and not title:
+        results = songsDB.query(keyString='artist', query=artist)
+        
+    # artist + title in main index -------------------------------------------------------------------------------------------------------------
+
+    elif artist and title and not year and not album:
+        results = songsDB.query(keyString='artist', query=artist, sortKeyString='title', sortKeyQuery=title)
+
+    # artist by year in year-lsi  --------------------------------------------------------------------------------------------------------------
+
+    elif artist and year and not album and not title:
+        results = songsDB.query(keyString='artist', query=artist, indexName='year-lsi', sortKeyString='year', sortKeyQuery=year)
+
+    # artist by album in album gsi -------------------------------------------------------------------------------------------------------------
+
+    elif artist and album and not year and not title:
+        results = songsDB.query(keyString='artist', query=artist, indexName='album-lsi', sortKeyString='album', sortKeyQuery=album)
+
+    # artist by year by album in year-lsi ------------------------------------------------------------------------------------------------------
+
+    elif artist and year and album and not title:
+        results = songsDB.query(keyString='artist', query=artist, indexName='year-lsi', sortKeyString='year', sortKeyQuery=year)
+        results = [res for res in results if res.get('album') == album]
+
+    # artist by year by title in year-lsi ------------------------------------------------------------------------------------------------------
+
+    elif artist and year and title and not album:
+        results = songsDB.query(keyString='artist', query=artist, indexName='year-lsi', sortKeyString='year', sortKeyQuery=year)
+        results = [res for res in results if res.get('title', '').lower() == title.lower()]
+
+    # artist by album by title in album-lsi -----------------------------------------------------------------------------------------------------
+
+    elif artist and album and title and not year:
+        results = songsDB.query(keyString='artist', query=artist, indexName='album-lsi', sortKeyString='album', sortKeyQuery=album)
+        results = [res for res in results if res.get('title', '').lower() == title.lower()]
+
+    # all four using year-lsi -------------------------------------------------------------------------------------------------------------------
+
+    elif artist and year and album and title:
+        results = songsDB.query(keyString='artist', query=artist, indexName='year-lsi', sortKeyString='year', sortKeyQuery=year)
+        results = [res for res in results if res.get('album') == album and res.get('title', '').lower() == title.lower()]
+
+    # title in title-gsi ------------------------------------------------------------------------------------------------------------------------
+
+    elif title and not artist and not year and not album:
+        results = songsDB.query(keyString='title', query=title, indexName='title-gsi')
+
+    # title by year in title gsi ----------------------------------------------------------------------------------------------------------------
+
+    elif title and year and not artist and not album:
+        results = songsDB.query(keyString='title', query=title, indexName='title-gsi')
+        results = [res for res in results if res.get('year') == year]
+
+    # title by album in title-gsi ---------------------------------------------------------------------------------------------------------------
+
+    elif title and album and not artist and not year:
+        results = songsDB.query(keyString='title', query=title, indexName='title-gsi')
+        results = [res for res in results if res.get('album') == album]
+
+    # title by year by album in title-gsi -------------------------------------------------------------------------------------------------------
+
+    elif title and year and album and not artist:
+        results = songsDB.query(keyString='title', query=title, indexName='title-gsi')
+        results = [res for res in results if res.get('year') == year and res.get('album') == album]
+
+    # year - year-gsi ---------------------------------------------------------------------------------------------------------------------------
+
+    elif year and not artist and not album and not title:
+        results = songsDB.query(keyString='year', query=year, indexName='year-gsi')
+
+    # album - album-gsi -------------------------------------------------------------------------------------------------------------------------
+
+    elif album and not artist and not year and not title: 
+        results = songsDB.query(keyString='album', query=album, indexName='album-gsi')
+    
+    # year + album - year-gsi -------------------------------------------------------------------------------------------------------------------
+
+    elif year and album and not artist and not title:
+        results = songsDB.query(keyString='year', query=year, indexName='year-gsi')
+        results = [res for res in results if res.get('album') == album]
+
+    else:
+        results = []
+
+    return jsonify(results), 200
+
+
+
+
+
+
+# main ---------------------------------------------------------------------------------------------------
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=5000, debug=True)
+
+
+
 
