@@ -28,7 +28,7 @@ def createTable():
             'KeyType': 'HASH'
         },
         {
-            'AttributeName': 'title',
+            'AttributeName': 'artist:title:album:year',
             'KeyType': 'RANGE'
         }
     ]
@@ -39,7 +39,8 @@ def createTable():
         {'AttributeName': 'title', 'AttributeType': 'S'},
         {'AttributeName': 'artist', 'AttributeType': 'S'},
         {'AttributeName': 'year', 'AttributeType': 'S'},
-        {'AttributeName': 'album', 'AttributeType': 'S'}
+        {'AttributeName': 'album', 'AttributeType': 'S'},
+        {'AttributeName': 'artist:title:album:year', 'AttributeType': 'S'}
     ]
 
     # IOPT ------------------------------------------------------------------------------------------------------------------------------------
@@ -93,6 +94,14 @@ def createTable():
             'KeySchema': [
                 {'AttributeName': 'artist', 'KeyType': 'HASH'},  
                 {'AttributeName': 'year', 'KeyType': 'RANGE'} 
+            ],
+            'Projection': {'ProjectionType': 'ALL'}
+        },
+        {
+            'IndexName': 'title-lsi',
+            'KeySchema': [
+                {'AttributeName': 'artist', 'KeyType': 'HASH'},  
+                {'AttributeName': 'title', 'KeyType': 'RANGE'} 
             ],
             'Projection': {'ProjectionType': 'ALL'}
         }

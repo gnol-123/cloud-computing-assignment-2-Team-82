@@ -1,5 +1,6 @@
 import sys
 from pathlib import Path
+import boto3
 
 project_root = Path(__file__).parent.parent
 
@@ -19,6 +20,8 @@ def loadData():
 
     dndb = DynamoDB()
 
+    client = boto3.client('dynamodb')
+
     dndb.get_table("music")
 
     if dndb.workingTable is None:
@@ -37,6 +40,9 @@ def loadData():
 
         if (i == len(songs) - 1):
             print(f"Loading song {i+1} / {len(songs)}")
+
+                
+        song["artist:title:album:year"] = f"{song["artist"]}:{song["title"]}:{song["album"]}:{song["year"]}"
 
         dndb.put_item(song)
 

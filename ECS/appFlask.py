@@ -114,7 +114,7 @@ def query_songs():
     # artist + title in main index -------------------------------------------------------------------------------------------------------------
 
     elif artist and title and not year and not album:
-        results = songsDB.query(keyString='artist', query=artist, sortKeyString='title', sortKeyQuery=title)
+        results = songsDB.query(keyString='artist', query=artist, indexName="title-lsi" , sortKeyString='title', sortKeyQuery=title)
 
     # artist by year in year-lsi  --------------------------------------------------------------------------------------------------------------
 
