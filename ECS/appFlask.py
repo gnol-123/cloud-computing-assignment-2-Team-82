@@ -230,15 +230,18 @@ def add_subscription():
     user_name = data.get('user_name')
 
     try:
-        loginDB.workingTable.update_item(
-            Key={'email': email, 'user_name': user_name},
-            UpdateExpression='SET subscriptions = list_append(if_not_exists(subscriptions, :empty), :new)',
-            ExpressionAttributeValues={
-                ':new': [{'artist': artist, 'title': title}],
-                ':empty': []
-            }
-        )
-        return jsonify({'message': 'Subscribed!'}), 201
+        if loginDB.get_item(key={'email': email, 'user_name': user_name}) != None:
+            loginDB.workingTable.update_item(
+                Key={'email': email, 'user_name': user_name},
+                UpdateExpression='SET subscriptions = list_append(if_not_exists(subscriptions, :empty), :new)',
+                ExpressionAttributeValues={
+                    ':new': [{'artist': artist, 'title': title}],
+                    ':empty': []
+                }
+            )
+            return jsonify({'message': 'Subscribed!'}), 201
+        else:
+            return jsonify({'message': 'Invalid User'}), 404
     except Exception as e:
         return jsonify({'message': f'Failed to subscribe: {e}'}), 500
 
