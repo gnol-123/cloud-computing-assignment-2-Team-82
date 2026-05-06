@@ -5,7 +5,7 @@ import sys, base64
 
 app = Flask(__name__)
 app.secret_key = 'sample-key'
-CORS(app, supports_credentials=True)
+CORS(app, supports_credentials=True, origins='*')
 
 project_root = Path(__file__).parent.parent
 sys.path.append(str(project_root))
