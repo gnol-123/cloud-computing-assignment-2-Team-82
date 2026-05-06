@@ -1,4 +1,4 @@
-from flask import Flask, request, jsonify, session, send_file
+from flask import Flask, request, jsonify, session, send_file, redirect
 from flask_cors import CORS
 from pathlib import Path
 import sys, base64
@@ -199,10 +199,8 @@ def query_songs():
 @app.route('/image/<artist>', methods=['GET'])
 def get_image(artist):
     key = f"img/{artist}"
-    fPath = img_dir / f"{artist}.jpg"
-    s3.download(key=key, filePath=fPath)
-    
-    return send_file(fPath, mimetype='image/jpeg')
+    url = f"https://{S3_BUCKET}.s3.amazonaws.com/{key}"
+    return redirect(url)
 
 # Subscriptions ====================================================================================================================================
 
