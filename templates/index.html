@@ -1,0 +1,319 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Soundwave</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/static/styles.css">
+</head>
+<body>
+
+<!-- ══════════════════════════════════════════
+     LOGIN PAGE
+══════════════════════════════════════════ -->
+<div id="page-login" class="page active">
+  <div class="auth-screen">
+
+    <!-- Left panel: branding -->
+    <div class="auth-left">
+      <div class="auth-brand">
+        <div class="brand-icon">♪</div>
+        <div class="brand-name">Soundwave</div>
+      </div>
+      <div class="auth-tagline">
+        <div class="auth-tag-big">Your music.<br>Your world.</div>
+        <div class="auth-tag-sub">Stream, subscribe, and discover music powered by the cloud.</div>
+      </div>
+      <div class="auth-dots">
+        <span class="dot dot-active"></span>
+        <span class="dot"></span>
+        <span class="dot"></span>
+      </div>
+    </div>
+
+    <!-- Right panel: form -->
+    <div class="auth-right">
+      <div class="auth-form-wrap">
+        <h1 class="form-heading">Welcome back</h1>
+        <p class="form-sub">Sign in to your account</p>
+
+        <div id="login-error" class="alert alert-error">email or password is invalid</div>
+
+        <div class="inp-group">
+          <label>Email</label>
+          <input type="email" id="login-email" placeholder="you@example.com">
+        </div>
+        <div class="inp-group">
+          <label>Password</label>
+          <input type="password" id="login-password" placeholder="••••••••">
+        </div>
+
+        <button class="btn-main" id="btn-login" onclick="doLogin()">Sign In</button>
+
+        <p class="form-switch">No account? <a onclick="showPage('register')">Create one</a></p>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+
+<!-- ══════════════════════════════════════════
+     REGISTER PAGE
+══════════════════════════════════════════ -->
+<div id="page-register" class="page">
+  <div class="auth-screen">
+
+    <div class="auth-left">
+      <div class="auth-brand">
+        <div class="brand-icon">♪</div>
+        <div class="brand-name">Soundwave</div>
+      </div>
+      <div class="auth-tagline">
+        <div class="auth-tag-big">Join the<br>community.</div>
+        <div class="auth-tag-sub">Create your free account and start building your music library today.</div>
+      </div>
+      <div class="auth-dots">
+        <span class="dot"></span>
+        <span class="dot dot-active"></span>
+        <span class="dot"></span>
+      </div>
+    </div>
+
+    <div class="auth-right">
+      <div class="auth-form-wrap">
+        <h1 class="form-heading">Create account</h1>
+        <p class="form-sub">It's free, always.</p>
+
+        <div id="register-error"   class="alert alert-error"></div>
+        <div id="register-success" class="alert alert-success">Account created! Redirecting…</div>
+
+        <div class="inp-group">
+          <label>Email</label>
+          <input type="email" id="reg-email" placeholder="you@example.com">
+        </div>
+        <div class="inp-group">
+          <label>Username</label>
+          <input type="text" id="reg-username" placeholder="Your display name">
+        </div>
+        <div class="inp-group">
+          <label>Password <span class="inp-hint">min 6 characters</span></label>
+          <input type="password" id="reg-password" placeholder="••••••••">
+        </div>
+
+        <button class="btn-main" id="btn-register" onclick="doRegister()">Create Account</button>
+
+        <p class="form-switch">Already registered? <a onclick="showPage('login')">Sign in</a></p>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+
+<!-- ══════════════════════════════════════════
+     MAIN PAGE
+══════════════════════════════════════════ -->
+<div id="page-main" class="page">
+
+  <!-- TOP BAR -->
+  <header class="navbar">
+    <div class="nav-left">
+      <div class="nav-brand">
+        <span class="nav-icon">♪</span>
+        <span class="nav-title">Soundwave</span>
+      </div>
+    </div>
+    <div class="nav-center">
+      <div class="greeting-wrap">
+        <div class="greeting-line" id="greeting-text">Good evening,</div>
+        <div class="greeting-name" id="user-display-name"></div>
+      </div>
+    </div>
+    <div class="nav-right">
+      <div class="nav-avatar" id="nav-avatar"></div>
+      <button class="nav-signout" onclick="doLogout()">Sign out</button>
+    </div>
+  </header>
+
+  <!-- MAIN BODY -->
+  <div class="main-body" id="main-body">
+
+    <!-- SECTION: Subscriptions -->
+    <section class="section">
+      <div class="section-hd">
+        <div>
+          <div class="section-eyebrow">Your Library</div>
+          <div class="section-label">My Subscriptions</div>
+        </div>
+        <div class="count-tag" id="sub-count">0</div>
+      </div>
+
+      <!-- Empty state -->
+      <div id="sub-empty" class="empty-box">
+        <div class="empty-icon-wrap">
+          <svg width="32" height="32" viewBox="0 0 24 24" fill="none">
+            <path d="M9 18V5l12-2v13" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+            <circle cx="6" cy="18" r="3" stroke="currentColor" stroke-width="1.5"/>
+            <circle cx="18" cy="16" r="3" stroke="currentColor" stroke-width="1.5"/>
+          </svg>
+        </div>
+        <div class="empty-title">Your library is empty</div>
+        <div class="empty-body">Search for songs below and hit Subscribe to add them here</div>
+      </div>
+
+      <!-- Song rows -->
+      <div id="sub-list" class="song-list"></div>
+    </section>
+
+    <div class="divider"></div>
+
+    <!-- SECTION: Discover -->
+    <section class="section">
+      <div class="section-hd">
+        <div>
+          <div class="section-eyebrow">Discover</div>
+          <div class="section-label">Search Music</div>
+        </div>
+      </div>
+
+      <!-- Search bar -->
+      <div class="search-bar">
+        <div class="search-row">
+          <div class="search-inp-wrap">
+            <span class="search-ico">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none">
+                <circle cx="11" cy="11" r="8" stroke="currentColor" stroke-width="2"/>
+                <path d="m21 21-4.35-4.35" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+              </svg>
+            </span>
+            <input type="text" id="q-title"  class="search-inp" placeholder="Title">
+          </div>
+          <div class="search-inp-wrap">
+            <span class="search-ico">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none">
+                <rect x="3" y="4" width="18" height="18" rx="2" stroke="currentColor" stroke-width="2"/>
+                <path d="M16 2v4M8 2v4M3 10h18" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+              </svg>
+            </span>
+            <input type="text" id="q-year"   class="search-inp" placeholder="Year">
+          </div>
+          <div class="search-inp-wrap">
+            <span class="search-ico">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none">
+                <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                <circle cx="12" cy="7" r="4" stroke="currentColor" stroke-width="2"/>
+              </svg>
+            </span>
+            <input type="text" id="q-artist" class="search-inp" placeholder="Artist">
+          </div>
+          <div class="search-inp-wrap">
+            <span class="search-ico">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none">
+                <path d="M9 18V5l12-2v13" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                <circle cx="6" cy="18" r="3" stroke="currentColor" stroke-width="2"/>
+                <circle cx="18" cy="16" r="3" stroke="currentColor" stroke-width="2"/>
+              </svg>
+            </span>
+            <input type="text" id="q-album"  class="search-inp" placeholder="Album">
+          </div>
+          <button class="btn-search" id="btn-query" onclick="doQuery()">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
+              <circle cx="11" cy="11" r="8" stroke="currentColor" stroke-width="2.5"/>
+              <path d="m21 21-4.35-4.35" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"/>
+            </svg>
+            Search
+          </button>
+        </div>
+
+        <div id="query-err" class="inline-err">Please enter at least one search field.</div>
+      </div>
+
+      <!-- Results -->
+      <div id="no-result" class="no-result">No result is retrieved. Please query again.</div>
+      <div id="result-list" class="song-list" style="margin-top:1rem;"></div>
+    </section>
+
+  </div><!-- /main-body -->
+
+  <!-- NOW PLAYING BAR -->
+  <div id="np-bar" class="np-bar">
+    <!-- Background image layer -->
+    <div id="np-bg" class="np-bg"></div>
+    <div class="np-overlay"></div>
+
+    <div class="np-inner">
+      <div class="np-left">
+        <img id="np-art" class="np-art" src="" alt="">
+        <div class="np-info">
+          <div class="np-song"   id="np-song"></div>
+          <div class="np-artist" id="np-artist-bar"></div>
+        </div>
+      </div>
+      <div class="np-mid">
+        <audio id="np-audio" controls></audio>
+      </div>
+      <div class="np-right">
+        <button class="np-expand" onclick="openPlayer()">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none">
+            <path d="M18 15l-6-6-6 6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+        </button>
+        <button class="np-close" onclick="closePlayer()">✕</button>
+      </div>
+    </div>
+  </div>
+
+</div><!-- /page-main -->
+
+
+<!-- ══════════════════════════════════════════
+     NOW PLAYING MODAL
+     Full screen player like image 1 center phone
+══════════════════════════════════════════ -->
+<div id="player-modal" class="player-modal">
+
+  <!-- Blurred background — set dynamically via JS -->
+  <div id="player-bg" class="player-bg"></div>
+  <div class="player-scrim"></div>
+
+  <div class="player-shell">
+
+    <!-- Header row -->
+    <div class="player-hd">
+      <button class="player-down" onclick="closeModal()">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
+          <path d="M6 9l6 6 6-6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+      </button>
+      <span class="player-hd-label">Now Playing</span>
+      <div style="width:32px"></div>
+    </div>
+
+    <!-- Album art -->
+    <div class="player-art-wrap">
+      <img id="player-art" class="player-art" src="" alt="">
+    </div>
+
+    <!-- Song info -->
+    <div class="player-info">
+      <div class="player-song"   id="player-song"></div>
+      <div class="player-artist" id="player-artist-modal"></div>
+      <div class="player-album"  id="player-album-modal"></div>
+    </div>
+
+    <!-- Preview tag -->
+    <div class="preview-tag">30-sec preview via Deezer</div>
+
+    <!-- Audio player -->
+    <audio id="player-audio" controls autoplay class="player-audio"></audio>
+
+    <div id="player-err" class="player-err"></div>
+
+  </div>
+</div>
+
+<script src="/static/app.js"></script>
+</body>
+</html>
