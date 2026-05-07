@@ -8,7 +8,7 @@ from botocore.exceptions import ClientError
 BUCKET_NAME = 'cloud-computing-a2-tejum'   
 AWS_REGION  = 'us-east-1'                 
 EC2_IP      = 'YOUR_EC2_IP_HERE'           
-EC2_PORT    = '5000'
+EC2_PORT    = '80'
 
 
 project_root = Path(__file__).parent
