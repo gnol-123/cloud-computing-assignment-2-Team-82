@@ -1,0 +1,268 @@
+from flask import Flask, request, jsonify, session, send_file, redirect
+from flask_cors import CORS
+from pathlib import Path
+import sys, base64
+
+app = Flask(__name__)
+app.secret_key = 'sample-key'
+CORS(app, supports_credentials=True, origins='*')
+
+project_root = Path(__file__).parent.parent
+sys.path.append(str(project_root))
+img_dir = project_root / "artifacts" / "images"
+Path(img_dir).mkdir(parents=True, exist_ok=True)
+
+from utils.DynamoDB import DynamoDB
+from utils.S3 import S3
+
+# Initialise DBs and S3 -----------------------------------------------------------------------------------
+
+MUSIC_TABLE = "music"
+LOGIN_TABLE = "login"
+S3_BUCKET = 'cloud-computing-a2-s4054917'
+
+songsDB = DynamoDB()
+songsDB.get_table(MUSIC_TABLE)
+
+loginDB = DynamoDB()
+loginDB.get_table(LOGIN_TABLE)
+
+s3 = S3()
+s3.get_bucket(S3_BUCKET)
+
+@app.route('/')
+def index():
+    return send_file(str(project_root / 'templates' / 'index.html'))
+
+@app.route('/styles.css')
+def styles():
+    return send_file(str(project_root / 'static' / 'styles.css'))
+
+@app.route('/app.js')
+def appjs():
+    return send_file(str(project_root / 'static' / 'app.js'))
+
+# AUTH ====================================================================================================================
+
+@app.route('/login', methods=['POST'])
+def login():
+    data = request.json
+    email = data.get('email')
+    password = data.get('password')
+
+    results = loginDB.query(keyString='email', query=email)
+
+    if not results:
+        return jsonify({'message': 'email or password is invalid'}), 401
+
+    result = results[0]
+
+    if result is None:
+        return jsonify({'message': 'User not found'}), 404
+    if password == result['password']:
+
+        session['email'] = email
+        session['username'] = result['user_name']
+
+        return jsonify({
+            'message': 'Login successful',
+            'email': email,
+            'username': result['user_name']
+        }), 200
+    
+    else:
+        return jsonify({'message': 'Incorrect password'}), 200
+
+# -----------------------------------------------------------------------------------------------------------------------------
+
+@app.route('/logout', methods=['POST'])
+def logout():
+    session.clear()
+    return jsonify({'message': 'logged out'}), 200
+
+# ------------------------------------------------------------------------------------------------------------------------------
+
+@app.route('/register', methods=['POST'])
+def register():
+    data = request.json
+    email    = data.get('email')
+    username = data.get('user_name')
+    password = data.get('password')
+
+    if not email or not username or not password:
+        return jsonify({'message': 'All fields are required'}), 400
+
+    existing = loginDB.query(keyString='email', query=email)
+
+    if existing:
+        return jsonify({'message': 'The email already exists'}), 409
+
+    newUser = {
+        'email': email,
+        'user_name': username,
+        'password': password
+    }
+
+    loginDB.put_item(newUser)
+
+    return jsonify({'message': 'Registration successful'}), 201
+
+# Querying =====================================================================================================================================
+
+@app.route('/songs', methods=['GET'])
+def query_songs():
+    artist = request.args.get('artist')
+    title  = request.args.get('title')
+    year   = request.args.get('year')
+    album  = request.args.get('album')
+
+    result = {}
+
+    if artist and not year and not album and not title:
+        results = songsDB.query(keyString='artist', query=artist)
+        
+    elif artist and title and not year and not album:
+        results = songsDB.query(keyString='artist', query=artist, indexName="title-lsi" , sortKeyString='title', sortKeyQuery=title)
+
+    elif artist and year and not album and not title:
+        results = songsDB.query(keyString='artist', query=artist, indexName='year-lsi', sortKeyString='year', sortKeyQuery=year)
+
+    elif artist and album and not year and not title:
+        results = songsDB.query(keyString='artist', query=artist, indexName='album-lsi', sortKeyString='album', sortKeyQuery=album)
+
+    elif artist and year and album and not title:
+        results = songsDB.query(keyString='artist', query=artist, indexName='year-lsi', sortKeyString='year', sortKeyQuery=year)
+        results = [res for res in results if res.get('album') == album]
+
+    elif artist and year and title and not album:
+        results = songsDB.query(keyString='artist', query=artist, indexName='year-lsi', sortKeyString='year', sortKeyQuery=year)
+        results = [res for res in results if res.get('title', '').lower() == title.lower()]
+
+    elif artist and album and title and not year:
+        results = songsDB.query(keyString='artist', query=artist, indexName='album-lsi', sortKeyString='album', sortKeyQuery=album)
+        results = [res for res in results if res.get('title', '').lower() == title.lower()]
+
+    elif artist and year and album and title:
+        results = songsDB.query(keyString='artist', query=artist, indexName='year-lsi', sortKeyString='year', sortKeyQuery=year)
+        results = [res for res in results if res.get('album') == album and res.get('title', '').lower() == title.lower()]
+
+    elif title and not artist and not year and not album:
+        results = songsDB.query(keyString='title', query=title, indexName='title-gsi')
+
+    elif title and year and not artist and not album:
+        results = songsDB.query(keyString='title', query=title, indexName='title-gsi')
+        results = [res for res in results if res.get('year') == year]
+
+    elif title and album and not artist and not year:
+        results = songsDB.query(keyString='title', query=title, indexName='title-gsi')
+        results = [res for res in results if res.get('album') == album]
+
+    elif title and year and album and not artist:
+        results = songsDB.query(keyString='title', query=title, indexName='title-gsi')
+        results = [res for res in results if res.get('year') == year and res.get('album') == album]
+
+    elif year and not artist and not album and not title:
+        results = songsDB.query(keyString='year', query=year, indexName='year-gsi')
+
+    elif album and not artist and not year and not title: 
+        results = songsDB.query(keyString='album', query=album, indexName='album-gsi')
+    
+    elif year and album and not artist and not title:
+        results = songsDB.query(keyString='year', query=year, indexName='year-gsi')
+        results = [res for res in results if res.get('album') == album]
+
+    else:
+        results = []
+
+    return jsonify(results), 200
+
+# Get image =======================================================================================================================================
+
+@app.route('/image/<artist>', methods=['GET'])
+def get_image(artist):
+    key = f"img/{artist}"
+    url = f"https://{S3_BUCKET}.s3.amazonaws.com/{key}"
+    return redirect(url)
+
+# Subscriptions ====================================================================================================================================
+
+@app.route('/subscriptions', methods=['GET'])
+def get_subscriptions():
+    email    = request.args.get('email')
+    username = request.args.get('user_name')
+
+    result = loginDB.get_item(key={'email': email, 'user_name': username})
+
+    if not result:
+        return jsonify({'message': 'Invalid User'}), 404
+
+    subscriptions = result.get('subscriptions', [])
+    return jsonify(subscriptions), 200
+
+# ---------------------------------------------------------------------------------------------------------------------------------------------------
+
+@app.route('/subscriptions', methods=['POST'])
+def add_subscription():
+    data = request.json
+    email  = data.get('email')
+    artist = data.get('artist')
+    title  = data.get('title')
+    user_name = data.get('user_name')
+
+    try:
+        if loginDB.get_item(key={'email': email, 'user_name': user_name}) != None:
+            loginDB.workingTable.update_item(
+                Key={'email': email, 'user_name': user_name},
+                UpdateExpression='SET subscriptions = list_append(if_not_exists(subscriptions, :empty), :new)',
+                ExpressionAttributeValues={
+                    ':new': [{'artist': artist, 'title': title}],
+                    ':empty': []
+                }
+            )
+            return jsonify({'message': 'Subscribed!'}), 201
+        else:
+            return jsonify({'message': 'Invalid User'}), 404
+    except Exception as e:
+        return jsonify({'message': f'Failed to subscribe: {e}'}), 500
+
+# -----------------------------------------------------------------------------------------------------------------------------------------------------
+
+@app.route('/subscriptions', methods=['DELETE'])
+def delete_subscription():
+    data = request.json
+    email  = data.get('email')
+    user_name = data.get('user_name')
+    artist = data.get('artist')
+    title = data.get('title')
+
+    user = loginDB.get_item(key={'email': email, 'user_name': user_name})
+
+    if not user:
+        return jsonify({'message': 'User not found'}), 404
+    
+    subscriptions = user.get("subscriptions", [])
+
+    new_subscriptions = [subs for subs in subscriptions if not (subs["artist"] == artist and subs["title"] == title)]
+
+    if len(new_subscriptions) == len(subscriptions):
+        return jsonify({'message': f'failed to unsubscribe {title} not found'}), 404
+
+    try:
+        loginDB.workingTable.update_item(
+            Key={'email': email, 'user_name': user_name},
+            UpdateExpression='SET subscriptions = :updated',
+            ExpressionAttributeValues={':updated': new_subscriptions}
+        )
+        return jsonify({'message': 'Subscription removed'}), 200
+    except Exception as e:
+        return jsonify({'message': f'Failed to remove subscription: {e}'}), 500
+
+
+@app.route('/play', methods=['GET'])
+def play():
+    return jsonify({'error': 'Preview not available'}), 404
+
+# main ---------------------------------------------------------------------------------------------------
+
+if __name__ == '__main__':
+    app.run(host='0.0.0.0', port=80, debug=True)
