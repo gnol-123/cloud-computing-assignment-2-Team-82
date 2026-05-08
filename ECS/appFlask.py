@@ -199,7 +199,11 @@ def query_songs():
 @app.route('/image/<artist>', methods=['GET'])
 def get_image(artist):
     key = f"img/{artist}"
-    url = f"https://{S3_BUCKET}.s3.amazonaws.com/{key}"
+    url = s3.client.generate_presigned_url(
+        'get_object',
+        Params={'Bucket': S3_BUCKET, 'Key': key},
+        ExpiresIn=3600
+    )
     return redirect(url)
 
 # Subscriptions ====================================================================================================================================
@@ -273,6 +277,12 @@ def delete_subscription():
         return jsonify({'message': 'Subscription removed'}), 200
     except Exception as e:
         return jsonify({'message': f'Failed to remove subscription: {e}'}), 500
+    
+# Health check ==============================================================================================================================
+
+@app.route('/health', methods=['GET'])
+def health():
+    return jsonify({'status': 'ok'}), 200
 
 # main ---------------------------------------------------------------------------------------------------
 
