@@ -189,3 +189,26 @@ class S3:
         except Exception as e:
             print(f"Failed to upload bytes: {e}")
 
+# Pre-signed URL ----------------------------------------------------------------------------------------------------------------------------
+
+def get_presigned_url(self, key: str, expiresIn: int = 3600) -> str:
+    """
+    Generate a pre-signed URL for a private S3 object.
+
+    @params key: object key e.g. 'img/Adele'
+    @params expiresIn: expiry in seconds (default 1 hour)
+    """
+    
+    self.has_bucket()
+
+    try:
+        url = self.s3.generate_presigned_url(
+            'get_object',
+            Params={'Bucket': self.workingBucket, 'Key': key},
+            ExpiresIn=expiresIn
+        )
+        return url
+    except Exception as e:
+        print(f"Failed to generate presigned URL: {e}")
+        return None
+

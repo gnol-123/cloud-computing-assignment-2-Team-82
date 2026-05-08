@@ -199,11 +199,9 @@ def query_songs():
 @app.route('/image/<artist>', methods=['GET'])
 def get_image(artist):
     key = f"img/{artist}"
-    url = s3.client.generate_presigned_url(
-        'get_object',
-        Params={'Bucket': S3_BUCKET, 'Key': key},
-        ExpiresIn=3600
-    )
+    url = s3.get_presigned_url(key)
+    if not url:
+        return jsonify({'message': 'Image not found'}), 404
     return redirect(url)
 
 # Subscriptions ====================================================================================================================================
