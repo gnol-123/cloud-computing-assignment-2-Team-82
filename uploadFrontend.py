@@ -5,10 +5,10 @@ from pathlib import Path
 from botocore.exceptions import ClientError
 
 
-BUCKET_NAME = 'cloud-computing-a2-tejum'   
+BUCKET_NAME = 'cloud-computing-a2-s4040732'   
 AWS_REGION  = 'us-east-1'                 
-EC2_IP      = 'YOUR_EC2_IP_HERE'           
-EC2_PORT    = '80'
+EC2_IP      = 'bp2gi9gg15.execute-api.us-east-1.amazonaws.com/prod'           
+EC2_PORT    = ''
 
 
 project_root = Path(__file__).parent
@@ -113,7 +113,7 @@ def patch_app_js():
     with open(js_path, 'r', encoding='utf-8') as f:
         content = f.read()
 
-    ec2_base = f'http://{EC2_IP}:{EC2_PORT}'
+    ec2_base = f'https://{EC2_IP}'
 
     api_routes = [
         '/login',
