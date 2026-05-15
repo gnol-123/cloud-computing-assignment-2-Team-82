@@ -21,7 +21,7 @@ def main():
     print(f"Creating bucket...")
 
     # *** MUST BE UNIQUE USE YOUR OWN STUDENT NUMBER (TODO) *** #
-    bucket_name = "cloud-computing-a2-s4054917" 
+    bucket_name = "cloud-computing-a2-s4054917-test" 
 
     client.create_bucket(bucketName=bucket_name)
     client.get_bucket(bucketName=bucket_name)
@@ -29,37 +29,15 @@ def main():
         client.s3.put_public_access_block(
             Bucket=bucket_name,
             PublicAccessBlockConfiguration={
-                'BlockPublicAcls':       False,
-                'IgnorePublicAcls':      False,
-                'BlockPublicPolicy':     False,
-                'RestrictPublicBuckets': False
+                'BlockPublicAcls':       True,
+                'IgnorePublicAcls':      True,
+                'BlockPublicPolicy':     True,
+                'RestrictPublicBuckets': True
             }
         )
-        print('Public access block disabled')
+        print('Public access block enabled')
     except Exception as e:
-        print(f'  Warning: Could not disable block public access: {e}')
-
-    try:
-        policy = {
-            "Version": "2012-10-17",
-            "Statement": [
-                {
-                    "Sid":       "PublicReadGetObject",
-                    "Effect":    "Allow",
-                    "Principal": "*",
-                    "Action":    "s3:GetObject",
-                    "Resource":  f"arn:aws:s3:::{bucket_name}/*"
-                }
-            ]
-        }
-        client.s3.put_bucket_policy(
-            Bucket=bucket_name,
-            Policy=json.dumps(policy)
-        )
-        print('Bucket policy set - public read enabled')
-    except Exception as e:
-        print(f'Warning: Could not set bucket policy: {e}')
-
+        print(f'  Warning: Could not enable block public access: {e}')
 
 
 
